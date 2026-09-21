@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Registro de Asistencia — Instructores</title>
+<link rel="stylesheet" href="style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <link rel="stylesheet" href="css/style.css">
 
 </head>
 <body>
@@ -28,17 +28,21 @@
     </div>
   </header>
 
+  <div class="admin-bar">
+    <button class="btn secondary" id="adminToggleBtn">Acceso administrador</button>
+  </div>
+
   <nav class="tabs">
     <button data-view="scan" class="active">Escanear</button>
-    <button data-view="register">Registrar instructor</button>
-    <button data-view="instructors">Instructores</button>
+    <button data-view="register" class="admin-only-tab" style="display:none;">Registrar instructor</button>
+    <button data-view="instructors" class="admin-only-tab" style="display:none;">Instructores</button>
     <button data-view="history">Historial</button>
   </nav>
 
   <!-- ESCANEAR -->
   <section class="view active" id="view-scan">
     <h2 class="section">Escaneo de asistencia</h2>
-    <p class="hint">Apunta la cámara al código QR del instructor. El sistema detecta automáticamente si corresponde marcar ingreso o salida.</p>
+    <p class="hint">Apunta la cámara al código QR del instructor, o toma/sube una foto si prefieres no dejar la cámara abierta. El sistema detecta automáticamente si corresponde marcar ingreso o salida.</p>
     <div class="scan-wrap">
       <div>
         <div class="cam-box">
@@ -49,6 +53,8 @@
         <div class="btn-row">
           <button class="btn gold" id="btnStartCam">Iniciar cámara</button>
           <button class="btn secondary" id="btnStopCam" disabled>Detener</button>
+          <label class="btn secondary" for="qrFileInput" style="cursor:pointer;">Tomar foto / Subir imagen</label>
+          <input type="file" accept="image/*" capture="environment" id="qrFileInput" style="display:none;">
         </div>
       </div>
       <div class="result-box" id="resultBox">
@@ -119,11 +125,13 @@
     <div class="card">
       <div class="table-toolbar">
         <h2 class="section" style="margin:0;">Historial de asistencia</h2>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <select id="filterInstructor"><option value="">Todos los instructores</option></select>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
           <input type="text" id="filterDate" placeholder="AAAA-MM-DD">
-          <button class="btn secondary" id="btnExport">Exportar CSV</button>
-          <button class="btn secondary" id="btnClearHistory">Borrar historial</button>
+          <div id="historyAdminControls" style="display:none; gap:10px; flex-wrap:wrap;">
+            <select id="filterInstructor"><option value="">Todos los instructores</option></select>
+            <button class="btn secondary" id="btnExport">Exportar CSV</button>
+            <button class="btn secondary" id="btnClearHistory">Borrar historial</button>
+          </div>
         </div>
       </div>
       <div id="historyTableWrap"></div>
@@ -131,11 +139,31 @@
   </section>
 
   <footer class="note">
-    Los datos se guardan únicamente en este navegador (almacenamiento local del dispositivo). Si necesitas acceder desde otro equipo o compartir el registro entre varias computadoras, exporta el historial en CSV periódicamente.
+    Los datos se guardan únicamente en este navegador (almacenamiento local del dispositivo). Si necesitas acceder desde otro equipo o compartir el registro entre varias computadoras, exporta el historial en CSV periódicamente.<br>
+    El acceso de administrador es una protección básica en pantalla, pensada para que otras personas no editen los datos por accidente; no sustituye un sistema de usuarios con seguridad real.
   </footer>
 
 </div>
-  <script src="js/app.js"></script>
 
+<div class="modal-overlay" id="adminModalOverlay">
+  <div class="modal-card">
+    <h2 class="section" id="adminModalTitle">Acceso de administrador</h2>
+    <p class="hint" id="adminModalHint">Ingresa la contraseña de administrador.</p>
+    <label for="adminPassInput">Contraseña</label>
+    <input type="password" id="adminPassInput" placeholder="••••••••" autocomplete="off">
+    <div id="adminConfirmWrap" style="display:none;">
+      <label for="adminPassConfirm">Confirmar contraseña</label>
+      <input type="password" id="adminPassConfirm" placeholder="••••••••" autocomplete="off">
+    </div>
+    <p class="err" id="adminModalError"></p>
+    <div class="btn-row">
+      <button class="btn" id="adminModalSubmit">Entrar</button>
+      <button class="btn secondary" id="adminModalCancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+
+<script src="script.js"></script>
 </body>
 </html>
