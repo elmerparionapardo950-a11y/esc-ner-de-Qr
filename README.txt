@@ -9,10 +9,14 @@ Archivos:
 Cómo usarlo:
 1. Guarda los 3 archivos (y este README si quieres) en la MISMA carpeta.
 2. Abre index.html con doble clic en tu navegador.
-3. Para que la cámara funcione, el navegador puede pedir permiso; en algunos
-   navegadores la cámara solo funciona si abres el archivo por https:// o
-   localhost, no como archivo local (file://). Si la cámara no carga al
-   abrirlo directamente, prueba sirviéndolo con un servidor local simple,
-   por ejemplo con Python: 
-     python3 -m http.server 8000
-   y luego entra desde el navegador a http://localhost:8000
+3. IMPORTANTE: la cámara (tanto "Iniciar cámara" como "Tomar foto") NO
+   funciona si abres el archivo directamente con doble clic (file://),
+   porque los navegadores bloquean el acceso a la cámara por seguridad
+   en ese modo. La app ahora te avisa esto en pantalla si pasa.
+   Para que la cámara funcione, tienes dos opciones:
+     a) Súbelo a un hosting/servidor real (http/https).
+     b) Ábrelo con un servidor local, por ejemplo con Python:
+          python3 -m http.server 8000
+        y entra desde el navegador a http://localhost:8000
+   Mientras tanto, la opción "Sube una imagen guardada" dentro del
+   modal de foto SÍ funciona incluso abriendo el archivo directamente.

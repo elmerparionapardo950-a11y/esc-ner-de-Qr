@@ -213,6 +213,10 @@
   const scanCtx = scanCanvas.getContext('2d', { willReadFrequently:true });
 
   async function startCamera(){
+    if(location.protocol === 'file:'){
+      camStatus.textContent = 'La cámara no funciona con doble clic (file://). Ábrelo por http://localhost o usa el enlace publicado en línea, o usa "Tomar foto" con imagen subida.';
+      return;
+    }
     try{
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       video.srcObject = stream;
@@ -333,6 +337,18 @@
     stopCamera(); // evita tener dos cámaras abiertas a la vez
     photoModalError.style.display = 'none';
     photoModalOverlay.style.display = 'flex';
+
+    if(location.protocol === 'file:'){
+      photoModalError.textContent = 'La cámara no puede abrirse cuando el archivo se abre con doble clic (file://). Ábrelo desde un servidor local (por ejemplo "python3 -m http.server" y entra por http://localhost) o usa el enlace publicado en línea. Mientras tanto puedes usar "Sube una imagen guardada" abajo.';
+      photoModalError.style.display = 'block';
+      return;
+    }
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      photoModalError.textContent = 'Este navegador no admite acceso a la cámara. Usa "Sube una imagen guardada" abajo.';
+      photoModalError.style.display = 'block';
+      return;
+    }
+
     try{
       photoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       photoVideo.srcObject = photoStream;
@@ -357,8 +373,8 @@
   photoModalOverlay.addEventListener('click', (e)=>{ if(e.target === photoModalOverlay) closePhotoModal(); });
 
   btnCapturePhoto.addEventListener('click', ()=>{
-    if(!photoVideo.videoWidth){
-      photoModalError.textContent = 'La cámara todavía no está lista, espera un segundo e intenta de nuevo.';
+    if(!photoStream || photoVideo.readyState < 2 || !photoVideo.videoWidth){
+      photoModalError.textContent = 'La cámara todavía no está lista (o no se pudo abrir). Espera un segundo e intenta de nuevo, o sube una imagen guardada.';
       photoModalError.style.display = 'block';
       return;
     }
