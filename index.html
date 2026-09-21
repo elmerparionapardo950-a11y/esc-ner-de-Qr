@@ -4,13 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Registro de Asistencia — Instructores</title>
-<link rel="stylesheet" href="style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="app">
@@ -42,7 +41,7 @@
   <!-- ESCANEAR -->
   <section class="view active" id="view-scan">
     <h2 class="section">Escaneo de asistencia</h2>
-    <p class="hint">Apunta la cámara al código QR del instructor, o toma/sube una foto si prefieres no dejar la cámara abierta. El sistema detecta automáticamente si corresponde marcar ingreso o salida.</p>
+    <p class="hint">Apunta la cámara al código QR del instructor, o usa "Tomar foto" para congelar una imagen y escanearla desde ahí mismo. El sistema detecta automáticamente si corresponde marcar ingreso o salida.</p>
     <div class="scan-wrap">
       <div>
         <div class="cam-box">
@@ -53,8 +52,8 @@
         <div class="btn-row">
           <button class="btn gold" id="btnStartCam">Iniciar cámara</button>
           <button class="btn secondary" id="btnStopCam" disabled>Detener</button>
-          <label class="btn secondary" for="qrFileInput" style="cursor:pointer;">Tomar foto / Subir imagen</label>
-          <input type="file" accept="image/*" capture="environment" id="qrFileInput" style="display:none;">
+          <button class="btn secondary" id="btnTakePhoto" type="button">Tomar foto</button>
+          <input type="file" accept="image/*" id="qrFileInput" style="display:none;">
         </div>
       </div>
       <div class="result-box" id="resultBox">
@@ -145,6 +144,25 @@
 
 </div>
 
+<div class="modal-overlay" id="photoModalOverlay">
+  <div class="modal-card" style="max-width:420px;">
+    <h2 class="section">Tomar foto del QR</h2>
+    <p class="hint" id="photoModalHint">Encuadra el código dentro del recuadro y presiona "Capturar".</p>
+    <div class="cam-box" style="aspect-ratio:4/3;">
+      <video id="photoVideo" playsinline muted></video>
+      <div class="cam-frame"></div>
+    </div>
+    <p class="err" id="photoModalError"></p>
+    <div class="btn-row">
+      <button class="btn gold" id="btnCapturePhoto" type="button">Capturar</button>
+      <button class="btn secondary" id="btnCancelPhoto" type="button">Cancelar</button>
+    </div>
+    <p class="hint" style="margin-top:14px; margin-bottom:0;">
+      ¿No tienes cámara disponible? <label for="qrFileInput" style="text-decoration:underline; cursor:pointer;">Sube una imagen guardada</label>.
+    </p>
+  </div>
+</div>
+
 <div class="modal-overlay" id="adminModalOverlay">
   <div class="modal-card">
     <h2 class="section" id="adminModalTitle">Acceso de administrador</h2>
@@ -162,7 +180,6 @@
     </div>
   </div>
 </div>
-
 
 <script src="script.js"></script>
 </body>

@@ -1,5 +1,6 @@
 (function(){
-"use strict";
+
+  "use strict";
 
   // ---------- Storage helpers ----------
   const LS_INSTR = "asistencia_qr_instructors";
@@ -88,7 +89,7 @@
       document.getElementById('view-'+btn.dataset.view).classList.add('active');
       if(btn.dataset.view === 'instructors') renderInstructorList();
       if(btn.dataset.view === 'history') renderHistory();
-      if(btn.dataset.view !== 'scan') stopCamera();
+      if(btn.dataset.view !== 'scan'){ stopCamera(); closePhotoModal(); }
     });
   });
 
@@ -319,7 +320,68 @@
   btnStart.addEventListener('click', startCamera);
   btnStop.addEventListener('click', stopCamera);
 
-  // ---------- Escaneo desde foto / imagen subida ----------
+  // ---------- Tomar foto en la misma página ----------
+  const photoModalOverlay = document.getElementById('photoModalOverlay');
+  const photoVideo = document.getElementById('photoVideo');
+  const photoModalError = document.getElementById('photoModalError');
+  const btnTakePhoto = document.getElementById('btnTakePhoto');
+  const btnCapturePhoto = document.getElementById('btnCapturePhoto');
+  const btnCancelPhoto = document.getElementById('btnCancelPhoto');
+  let photoStream = null;
+
+  async function openPhotoModal(){
+    stopCamera(); // evita tener dos cámaras abiertas a la vez
+    photoModalError.style.display = 'none';
+    photoModalOverlay.style.display = 'flex';
+    try{
+      photoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      photoVideo.srcObject = photoStream;
+      await photoVideo.play();
+    }catch(err){
+      photoModalError.textContent = 'No se pudo acceder a la cámara. Revisa los permisos del navegador, o sube una imagen guardada.';
+      photoModalError.style.display = 'block';
+      console.error(err);
+    }
+  }
+
+  function closePhotoModal(){
+    photoModalOverlay.style.display = 'none';
+    if(photoStream){
+      photoStream.getTracks().forEach(t => t.stop());
+      photoStream = null;
+    }
+  }
+
+  btnTakePhoto.addEventListener('click', openPhotoModal);
+  btnCancelPhoto.addEventListener('click', closePhotoModal);
+  photoModalOverlay.addEventListener('click', (e)=>{ if(e.target === photoModalOverlay) closePhotoModal(); });
+
+  btnCapturePhoto.addEventListener('click', ()=>{
+    if(!photoVideo.videoWidth){
+      photoModalError.textContent = 'La cámara todavía no está lista, espera un segundo e intenta de nuevo.';
+      photoModalError.style.display = 'block';
+      return;
+    }
+    const snapCanvas = document.createElement('canvas');
+    snapCanvas.width = photoVideo.videoWidth;
+    snapCanvas.height = photoVideo.videoHeight;
+    const snapCtx = snapCanvas.getContext('2d');
+    snapCtx.drawImage(photoVideo, 0, 0, snapCanvas.width, snapCanvas.height);
+    const imgData = snapCtx.getImageData(0, 0, snapCanvas.width, snapCanvas.height);
+    // eslint-disable-next-line no-undef
+    const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: "attemptBoth" });
+
+    if(code && code.data){
+      closePhotoModal();
+      handleScan(code.data.trim());
+      camStatus.textContent = 'Código leído desde la foto.';
+    } else {
+      photoModalError.textContent = 'No se detectó un código QR en la foto. Ajusta el encuadre, acércate un poco y vuelve a capturar.';
+      photoModalError.style.display = 'block';
+    }
+  });
+
+  // ---------- Subir imagen guardada (respaldo sin cámara) ----------
   const fileInput = document.getElementById('qrFileInput');
   fileInput.addEventListener('change', (e)=>{
     const file = e.target.files && e.target.files[0];
@@ -340,22 +402,24 @@
       const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: "attemptBoth" });
 
       if(code && code.data){
+        closePhotoModal();
         handleScan(code.data.trim());
-        camStatus.textContent = 'Código leído desde la foto.';
+        camStatus.textContent = 'Código leído desde la imagen.';
       } else {
-        showResult(null, null);
-        camStatus.textContent = 'No se encontró un código QR en la foto. Intenta con más luz, más cerca y sin que el QR salga cortado.';
+        photoModalError.textContent = 'No se encontró un código QR en esa imagen. Intenta con otra foto.';
+        photoModalError.style.display = 'block';
       }
       URL.revokeObjectURL(objectUrl);
     };
 
     img.onerror = ()=>{
-      camStatus.textContent = 'No se pudo abrir la imagen seleccionada.';
+      photoModalError.textContent = 'No se pudo abrir la imagen seleccionada.';
+      photoModalError.style.display = 'block';
       URL.revokeObjectURL(objectUrl);
     };
 
     img.src = objectUrl;
-    fileInput.value = ''; // permite volver a elegir la misma foto si hace falta reintentar
+    fileInput.value = '';
   });
 
   // ---------- Historial ----------
@@ -591,4 +655,6 @@
   populateInstructorFilter();
   renderInstructorList();
   updateAdminUI();
+
+
 })();
